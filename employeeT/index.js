@@ -7,8 +7,8 @@ var connection = mysql.createConnection({
   host: "localhost",
   port: 3306,
   user: "root",
-  password: "~Magnet009",
-  database: "employeesDB"
+  password: "password",
+  database: "employeedb"
 });
 
 // connect to the mysql server and sql database
@@ -25,7 +25,7 @@ function firstPrompt() {
     .prompt({
       type: "list",
       name: "task",
-      message: "Would you like to do?",
+      message: "what would you like to do?",
       choices: [
         "View Employees",
         "View Employees by Department",
@@ -33,7 +33,10 @@ function firstPrompt() {
         "Add Employee",
         "Remove Employees",
         "Update Employee Role",
+        "View Department",
+        "View Role",
         "Add Role",
+        "Add Department",
         // "Remove Role",
         // "Update Employee Manager",
         "End"]
@@ -42,6 +45,15 @@ function firstPrompt() {
       switch (task) {
         case "View Employees":
           viewEmployee();
+          break;
+        case "View Department":
+          viewDepartment();
+          break;
+        case "Add Department":
+          addDepartment();
+          break;
+        case "View Role":
+          viewRole();
           break;
         case "View Employees by Department":
           viewEmployeeByDepartment();
@@ -76,6 +88,35 @@ function firstPrompt() {
     });
 }
 
+function viewDepartment(){
+
+  connection.query("select * from department",function(err,data){
+    console.table(data)
+    firstPrompt()
+  })
+
+}
+function viewRole(){
+connection.query("select * from role",function(err,data){
+  console.table(data)
+  firstPrompt()
+})
+
+}
+function addDepartment(){
+
+  inquirer.prompt({
+    type:"input",
+    message:"what is your department",
+    name:"department"
+  }).then(function(userInput){
+    connection.query("insert Into department (name)values(?)",userInput.department,function(err,data){
+      console.log("department added")
+      firstPrompt()
+    })
+  })
+
+}
 //////////////////========================= 1."View Employees"/ READ all, SELECT * FROM
 
 function viewEmployee() {
@@ -219,7 +260,7 @@ function promptInsert(roleChoices) {
         message: "What is the employee's role?",
         choices: roleChoices
       },
-      
+
     ])
     .then(function (answer) {
       console.log(answer);
@@ -301,7 +342,7 @@ function promptDelete(deleteEmployeeChoices) {
 
 //========================================= 6."Update Employee Role" / UPDATE,
 
-function updateEmployeeRole() { 
+function updateEmployeeRole() {
   employeeArray();
 
 }
@@ -323,7 +364,7 @@ function employeeArray() {
     if (err) throw err;
 
     const employeeChoices = res.map(({ id, first_name, last_name }) => ({
-      value: id, name: `${first_name} ${last_name}`      
+      value: id, name: `${first_name} ${last_name}`
     }));
 
     console.table(res);
@@ -345,7 +386,7 @@ function roleArray(employeeChoices) {
     if (err) throw err;
 
     roleChoices = res.map(({ id, title, salary }) => ({
-      value: id, title: `${title}`, salary: `${salary}`      
+      value: id, title: `${title}`, salary: `${salary}`
     }));
 
     console.table(res);
@@ -377,8 +418,8 @@ function promptEmployeeRole(employeeChoices, roleChoices) {
       var query = `UPDATE employee SET role_id = ? WHERE id = ?`
       // when finished prompting, insert a new item into the db with that info
       connection.query(query,
-        [ answer.roleId,  
-          answer.employeeId
+        [answer.roleId,
+        answer.employeeId
         ],
         function (err, res) {
           if (err) throw err;
